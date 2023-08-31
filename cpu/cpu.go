@@ -134,3 +134,11 @@ func (p *Processor) writeAF(data uint16) {
 	low := byte(data & 0xFF)
 	p.a, p.f = high, low
 }
+
+func (p *Processor) setFlag(flag byte, status bool) {
+	if status {
+		p.f |= flag
+	} else {
+		p.f &= ^flag
+	}
+}
