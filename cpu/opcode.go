@@ -125,4 +125,18 @@ var instructionSet = map[byte]*instruction{
 	0x7C: {0x7C, "LD", 1, 4, none, loadAFromReg},
 	0x7D: {0x7D, "LD", 1, 4, none, loadAFromReg},
 	0x7F: {0x7F, "LD", 1, 4, none, loadAFromReg},
+	// ld (HL), n8
+	0x36: {0x36, "LD", 2, 12, immediate, storeImmediateInHL},
+	// read IO Port
+	0xF0: {0xF0, "LD", 2, 12, immediate, readIOPort},
+	0xF2: {0xF2, "LD", 1, 8, none, readIOPort},
+	// write IO Port
+	0xE0: {0xE0, "LD", 2, 12, immediate, writeIOPort},
+	0xE2: {0xE2, "LD", 1, 8, none, writeIOPort},
+	// ldi
+	0x22: {0x22, "LDI", 1, 8, none, ldi},
+	0x2A: {0x2A, "LDI", 1, 8, none, ldi},
+	// ldd
+	0x32: {0x32, "LDD", 1, 8, none, ldd},
+	0x3A: {0x3A, "LDD", 1, 8, none, ldd},
 }

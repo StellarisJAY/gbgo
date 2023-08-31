@@ -243,3 +243,64 @@ func storeAInReg(p *Processor, op *instruction) {
 		p.l = p.a
 	}
 }
+
+// ld (HL), n8
+func storeImmediateInHL(p *Processor, op *instruction) {
+	addr := p.reg16(p.h, p.l)
+	data := p.readOperand8(p.pc, op.mode)
+	p.writeMem8(addr, data)
+}
+
+// ld A, (0xFF00 + N); N = C or n8
+func readIOPort(p *Processor, op *instruction) {
+	var addr uint16 = 0xFF00
+	switch op.code {
+	case 0xF0: // ld A, (0xFF00 + n8)
+		addr += uint16(p.readOperand8(p.pc, op.mode))
+	case 0xF2: // ld A, (0XFF00 + C)
+		addr += uint16(p.c)
+	}
+	p.a = p.readMem8(addr)
+}
+
+// ld (0XFF00 + N), A; N = C or n8
+func writeIOPort(p *Processor, op *instruction) {
+	var addr uint16 = 0xFF00
+	switch op.code {
+	case 0xE0: // ld (0xFF00 + n8), A
+		addr += uint16(p.readOperand8(p.pc, op.mode))
+	case 0xE2: // ld (0xFF00 + C), A
+		addr += uint16(p.c)
+	}
+	p.writeMem8(addr, p.a)
+}
+
+// A = (HL), HL += 1
+// (HL) = A, HL += 1
+func ldi(p *Processor, op *instruction) {
+	addr := p.reg16(p.h, p.l)
+	switch op.code {
+	case 0x22: // ldi (HL), A
+		p.writeMem8(addr, p.a)
+	case 0x2A: // ldi A, (HL)
+		p.a = p.readMem8(addr)
+	default:
+		panic("impossible ldi opcode")
+	}
+	addr += 1
+	p.writeHL(addr)
+}
+
+// A = (HL), HL -= 1
+// (HL) = A, HL -= 1
+func ldd(p *Processor, op *instruction) {
+	addr := p.reg16(p.h, p.l)
+	switch op.code {
+	case 0x32: // ldd (HL), A
+		p.writeMem8(addr, p.a)
+	case 0x3A: // ldd A, (HL)
+		p.a = p.readMem8(addr)
+	}
+	addr -= 1
+	p.writeHL(addr)
+}
