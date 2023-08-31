@@ -100,6 +100,12 @@ func (p *Processor) writeMem8(addr uint16, data byte) {
 	p.bus.WriteMem8(addr, data)
 }
 
+func (p *Processor) writeMem16(addr, data uint16) {
+	low, high := byte(data&0xFF), byte(data>>8)
+	p.writeMem8(addr, low)
+	p.writeMem8(addr+1, high)
+}
+
 // 获取16位组合寄存器值
 func (p *Processor) reg16(regHigh, regLow byte) uint16 {
 	return uint16(regHigh)<<8 | uint16(regLow)
@@ -121,4 +127,10 @@ func (p *Processor) writeHL(data uint16) {
 	high := byte(data >> 8)
 	low := byte(data & 0xFF)
 	p.h, p.l = high, low
+}
+
+func (p *Processor) writeAF(data uint16) {
+	high := byte(data >> 8)
+	low := byte(data & 0xFF)
+	p.a, p.f = high, low
 }

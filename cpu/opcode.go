@@ -139,4 +139,16 @@ var instructionSet = map[byte]*instruction{
 	// ldd
 	0x32: {0x32, "LDD", 1, 8, none, ldd},
 	0x3A: {0x3A, "LDD", 1, 8, none, ldd},
+	// ld SP, HL
+	0xF9: {0xF9, "LD", 1, 8, none, loadSP},
+	// stack push
+	0xC5: {0xC5, "PUSH", 1, 12, none, pushReg},
+	0xD5: {0xD5, "PUSH", 1, 12, none, pushReg},
+	0xE5: {0xE5, "PUSH", 1, 12, none, pushReg},
+	0xF5: {0xF5, "PUSH", 1, 12, none, pushReg},
+	// stack pop
+	0xC1: {0xC1, "PUSH", 1, 12, none, popReg},
+	0xD1: {0xD1, "PUSH", 1, 12, none, popReg},
+	0xE1: {0xE1, "PUSH", 1, 12, none, popReg},
+	0xF1: {0xF1, "PUSH", 1, 12, none, popReg},
 }
