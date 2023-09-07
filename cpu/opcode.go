@@ -191,4 +191,13 @@ var instructionSet = map[byte]*instruction{
 	0x24: {0x24, "INC", 1, 4, none, inc},
 	0x2C: {0x2C, "INC", 1, 4, none, inc},
 	0x3C: {0x3C, "INC", 1, 4, none, inc},
+	// DEC N
+	0x35: {0x35, "DEC", 1, 12, none, dec},
+	0x05: {0x05, "DEC", 1, 4, none, dec},
+	0x0D: {0x0D, "DEC", 1, 4, none, dec},
+	0x15: {0x15, "DEC", 1, 4, none, dec},
+	0x1D: {0x1D, "DEC", 1, 4, none, dec},
+	0x25: {0x25, "DEC", 1, 4, none, dec},
+	0x2D: {0x2D, "DEC", 1, 4, none, dec},
+	0x3D: {0x3D, "DEC", 1, 4, none, dec},
 }
