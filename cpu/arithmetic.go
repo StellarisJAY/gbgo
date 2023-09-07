@@ -83,5 +83,74 @@ func dec(p *Processor, op *instruction) {
 	}
 	p.setFlag(subFlag, true)
 	p.setFlag(zeroFlag, result == 0)
-	p.determineHalfCarry(original, result)
+	p.determineHalfCarry(original, 1)
+}
+
+// ADD A, N; N = r8, n8, (HL)
+// A = A + N; z0hc
+func addA(p *Processor, op *instruction) {
+	original := p.a
+	var delta byte
+	switch op.code {
+	case 0x80:
+		delta = p.b
+	case 0x81:
+		delta = p.c
+	case 0x82:
+		delta = p.d
+	case 0x83:
+		delta = p.e
+	case 0x84:
+		delta = p.h
+	case 0x85:
+		delta = p.l
+	case 0x86: // ADD A, (HL)
+		delta = p.readMem8(p.reg16(p.h, p.l))
+	case 0x87: // ADD A, A
+		delta = p.a
+	case 0xC6: // ADD A, n8
+		delta = p.readOperand8(p.pc, op.mode)
+	}
+	result16 := uint16(p.a) + uint16(delta)
+	p.a = byte(result16 & 0xff)
+	p.setFlag(carryFlag, result16 > 0xff)
+	p.setFlag(zeroFlag, p.a == 0)
+	p.setFlag(subFlag, false)
+	p.determineHalfCarry(original, delta)
+}
+
+// ADC A, N; N = r8, (HL), n8
+// A = A + N + carry; z0hc
+func addAWithCarry(p *Processor, op *instruction) {
+	original := p.a
+	var delta, carry byte
+	switch op.code {
+	case 0x88:
+		delta = p.b
+	case 0x89:
+		delta = p.c
+	case 0x8A:
+		delta = p.d
+	case 0x8B:
+		delta = p.e
+	case 0x8C:
+		delta = p.h
+	case 0x8D:
+		delta = p.l
+	case 0x8E: // ADC A, (HL)
+		delta = p.readMem8(p.reg16(p.h, p.l))
+	case 0x8F: // ADC A, A
+		delta = p.a
+	case 0xCE: // ADC A, n8
+		delta = p.readOperand8(p.pc, op.mode)
+	}
+	if p.getFlag(carryFlag) {
+		carry = 1
+	}
+	result16 := uint16(p.a) + uint16(delta) + uint16(carry)
+	p.a = byte(result16 & 0xff)
+	p.setFlag(carry, result16 > 0xff)
+	p.setFlag(zeroFlag, p.a == 0)
+	p.setFlag(subFlag, false)
+	p.determineHalfCarry(original, delta+carry)
 }

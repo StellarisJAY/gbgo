@@ -143,10 +143,13 @@ func (p *Processor) setFlag(flag byte, status bool) {
 	}
 }
 
-func (p *Processor) determineHalfCarry(original, result byte) {
+func (p *Processor) getFlag(flag byte) bool {
+	return p.f&flag != 0
+}
+
+func (p *Processor) determineHalfCarry(original, delta byte) {
 	// 加法，低位半字节向高位半字节进位
 	// 减法，低位半字节从高位半字节借位
-	// 原值和结果值的高位半字节不相等
-	halfCarry := original&0xf0 != result&0xf0
+	halfCarry := original&0xf+delta > 0xf || original&0xf < delta
 	p.setFlag(halfCarryFlag, halfCarry)
 }
