@@ -180,9 +180,8 @@ func subA(p *Processor, op *instruction) {
 	case 0xD6: // SUB A, n8
 		delta = p.readOperand8(p.pc, op.mode)
 	}
-
-	// 没有从carry借位
-	p.setFlag(carryFlag, original >= delta)
+	p.a = p.a - delta
+	p.setFlag(carryFlag, original < delta)
 	p.setFlag(zeroFlag, p.a == 0)
 	p.setFlag(subFlag, true)
 	p.determineHalfCarry(original, delta)
@@ -217,9 +216,44 @@ func subAWithCarry(p *Processor, op *instruction) {
 		carry = 1
 	}
 	p.a = p.a - delta - carry
-	// 没有从carry借位
-	p.setFlag(carryFlag, original >= delta+carry)
+	p.setFlag(carryFlag, original < delta+carry)
 	p.setFlag(zeroFlag, p.a == 0)
 	p.setFlag(subFlag, true)
 	p.determineHalfCarry(original, delta)
+}
+
+// CP A,N; N = r8,n8,(HL)
+// z1hc
+// c: A < N
+// z: A == N
+func compareA(p *Processor, op *instruction) {
+	var data byte
+	switch op.code {
+	case 0xB8:
+		data = p.b
+	case 0xB9:
+		data = p.c
+	case 0xBA:
+		data = p.d
+	case 0xBB:
+		data = p.e
+	case 0xBC:
+		data = p.h
+	case 0xBD:
+		data = p.l
+	case 0xBE:
+		data = p.readMem8(p.reg16(p.h, p.l))
+	case 0xBF:
+		data = p.a
+	case 0xFE:
+		data = p.readOperand8(p.pc, op.mode)
+	}
+	p.compare(p.a, data)
+}
+
+func (p *Processor) compare(val1, val2 byte) {
+	p.setFlag(zeroFlag, val1 == val2)
+	p.setFlag(subFlag, true)
+	p.setFlag(carryFlag, val1 < val2)
+	p.determineHalfCarry(val1, val2)
 }
