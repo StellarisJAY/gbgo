@@ -154,3 +154,72 @@ func addAWithCarry(p *Processor, op *instruction) {
 	p.setFlag(subFlag, false)
 	p.determineHalfCarry(original, delta+carry)
 }
+
+// SUB A, N; N = r8,n8,(HL)
+// A = A - N; z1hc
+func subA(p *Processor, op *instruction) {
+	original := p.a
+	var delta byte
+	switch op.code {
+	case 0x90:
+		delta = p.b
+	case 0x91:
+		delta = p.c
+	case 0x92:
+		delta = p.d
+	case 0x93:
+		delta = p.e
+	case 0x94:
+		delta = p.h
+	case 0x95:
+		delta = p.l
+	case 0x96: // SUB A, (HL)
+		delta = p.readMem8(p.reg16(p.h, p.l))
+	case 0x97: // SUB A, A
+		delta = p.a
+	case 0xD6: // SUB A, n8
+		delta = p.readOperand8(p.pc, op.mode)
+	}
+
+	// 没有从carry借位
+	p.setFlag(carryFlag, original >= delta)
+	p.setFlag(zeroFlag, p.a == 0)
+	p.setFlag(subFlag, true)
+	p.determineHalfCarry(original, delta)
+}
+
+// SBC A, N; N = r8,n8,(HL)
+// A = A - N - carry; z1hc
+func subAWithCarry(p *Processor, op *instruction) {
+	original := p.a
+	var delta, carry byte
+	switch op.code {
+	case 0x98:
+		delta = p.b
+	case 0x99:
+		delta = p.c
+	case 0x9A:
+		delta = p.d
+	case 0x9B:
+		delta = p.e
+	case 0x9C:
+		delta = p.h
+	case 0x9D:
+		delta = p.l
+	case 0x9E: // SBC A, (HL)
+		delta = p.readMem8(p.reg16(p.h, p.l))
+	case 0x9F: // SBC A, A
+		delta = p.a
+	case 0xDE: // SBC A, n8
+		delta = p.readOperand8(p.pc, op.mode)
+	}
+	if p.getFlag(carryFlag) {
+		carry = 1
+	}
+	p.a = p.a - delta - carry
+	// 没有从carry借位
+	p.setFlag(carryFlag, original >= delta+carry)
+	p.setFlag(zeroFlag, p.a == 0)
+	p.setFlag(subFlag, true)
+	p.determineHalfCarry(original, delta)
+}

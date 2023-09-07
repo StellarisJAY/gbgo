@@ -23,7 +23,7 @@ type Processor struct {
 const (
 	// flag 寄存器的4~7位
 	carryFlag     byte = 1 << (iota + 4)
-	halfCarryFlag      // 半字节carry
+	halfCarryFlag      // 半字节carry, 加法向第四位进位 或 减法不从第四位借位时设置
 	subFlag
 	zeroFlag
 )
@@ -149,7 +149,7 @@ func (p *Processor) getFlag(flag byte) bool {
 
 func (p *Processor) determineHalfCarry(original, delta byte) {
 	// 加法，低位半字节向高位半字节进位
-	// 减法，低位半字节从高位半字节借位
-	halfCarry := original&0xf+delta > 0xf || original&0xf < delta
+	// 减法，低位半字节没有从高位半字节借位
+	halfCarry := original&0xf+delta > 0xf || original&0xf > delta
 	p.setFlag(halfCarryFlag, halfCarry)
 }
