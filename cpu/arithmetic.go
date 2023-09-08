@@ -257,3 +257,28 @@ func (p *Processor) compare(val1, val2 byte) {
 	p.setFlag(carryFlag, val1 < val2)
 	p.determineHalfCarry(val1, val2)
 }
+
+// ADD HL, N; N = BC,DE,HL,SP
+// -0hc
+// h: carry from bit 11
+// c: carry from bit 15
+func addHL(p *Processor, op *instruction) {
+	original := p.reg16(p.h, p.l)
+	var delta uint16
+	switch op.code {
+	case 0x09:
+		delta = p.reg16(p.b, p.c)
+	case 0x19:
+		delta = p.reg16(p.d, p.e)
+	case 0x29:
+		delta = p.reg16(p.h, p.l)
+	case 0x39:
+		delta = p.sp
+	}
+	result32 := uint32(original) + uint32(delta)
+	p.setFlag(carryFlag, result32 > 0xffff)
+	p.setFlag(subFlag, false)
+	// 第11位是否有进位
+	p.setFlag(halfCarryFlag, original&0xfff+delta > 0xfff)
+	p.writeHL(original + delta)
+}

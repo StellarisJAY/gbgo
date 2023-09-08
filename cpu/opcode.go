@@ -250,4 +250,11 @@ var instructionSet = map[byte]*instruction{
 	0xBE: {0xBE, "CP", 1, 8, none, compareA},
 	0xBF: {0xBF, "CP", 1, 4, none, compareA},
 	0xFE: {0xFE, "CP", 1, 8, immediate, compareA},
+	// ADD HL, N
+	0x09: {0x09, "ADD_HL", 1, 8, none, addHL},
+	0x19: {0x19, "ADD_HL", 1, 8, none, addHL},
+	0x29: {0x29, "ADD_HL", 1, 8, none, addHL},
+	0x39: {0x39, "ADD_HL", 1, 8, none, addHL},
+	// ADD SP, n8
+	0xE8: {0xE8, "ADD_SP", 2, 16, immediate, addSP},
 }

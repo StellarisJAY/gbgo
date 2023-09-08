@@ -43,3 +43,17 @@ func popReg(p *Processor, op *instruction) {
 		p.writeAF(p.stackPop16())
 	}
 }
+
+// ADD SP, n8
+func addSP(p *Processor, op *instruction) {
+	delta := p.readOperand8(p.pc, op.mode)
+	if delta&0x80 == 0 {
+		// positive
+		p.sp += uint16(delta)
+	} else {
+		// negative
+		p.sp -= uint16(-int16(int8(delta)))
+	}
+	p.setFlag(zeroFlag, false)
+	p.setFlag(subFlag, false)
+}
