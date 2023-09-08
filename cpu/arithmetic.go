@@ -282,3 +282,31 @@ func addHL(p *Processor, op *instruction) {
 	p.setFlag(halfCarryFlag, original&0xfff+delta > 0xfff)
 	p.writeHL(original + delta)
 }
+
+// INC r16
+func inc16(p *Processor, op *instruction) {
+	switch op.code {
+	case 0x03:
+		p.writeBC(p.reg16(p.b, p.c) + 1)
+	case 0x13:
+		p.writeDE(p.reg16(p.d, p.e) + 1)
+	case 0x23:
+		p.writeHL(p.reg16(p.h, p.l) + 1)
+	case 0x33:
+		p.sp += 1
+	}
+}
+
+// DEC r16
+func dec16(p *Processor, op *instruction) {
+	switch op.code {
+	case 0x0B:
+		p.writeBC(p.reg16(p.b, p.c) - 1)
+	case 0x1B:
+		p.writeDE(p.reg16(p.d, p.e) - 1)
+	case 0x2B:
+		p.writeHL(p.reg16(p.h, p.l) - 1)
+	case 0x3B:
+		p.sp -= 1
+	}
+}
