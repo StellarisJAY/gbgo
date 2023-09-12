@@ -274,4 +274,18 @@ var instructionSet = map[byte]*instruction{
 	0x1f: {0x1f, "RRA", 1, 4, none, rotateA},
 	// Rotates and shifts
 	0xCB: {0xCB, "ROTATES_SHIFTS", 1, 8, none, rotatesAndShifts},
+
+	// jump absolute
+	0xC3: {0xC3, "JP", 1, 12, immediate, jp},
+	0xC2: {0xC2, "JPC", 1, 12, immediate, jpc},
+	0xCA: {0xCA, "JPC", 1, 12, immediate, jpc},
+	0xD2: {0xD2, "JPC", 1, 12, immediate, jpc},
+	0xDA: {0xDA, "JPC", 1, 12, immediate, jpc},
+	0xE9: {0xE9, "JP(HL)", 1, 4, none, jpHL},
+	// jump relative
+	0x18: {0x18, "JR", 1, 8, immediate, jr},
+	0x20: {0x20, "JRC", 1, 8, immediate, jrc},
+	0x28: {0x28, "JRC", 1, 8, immediate, jrc},
+	0x30: {0x30, "JRC", 1, 8, immediate, jrc},
+	0x38: {0x38, "JRC", 1, 8, immediate, jrc},
 }
