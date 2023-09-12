@@ -299,4 +299,21 @@ var instructionSet = map[byte]*instruction{
 	0xC8: {0xC8, "RETC", 1, 8, none, retc},
 	0xD0: {0xD0, "RETC", 1, 8, none, retc},
 	0xD8: {0xD8, "RETC", 1, 8, none, retc},
+	// system
+	0xC7: {0xC7, "RST", 1, 32, none, rst},
+	0xCF: {0xCF, "RST", 1, 32, none, rst},
+	0xD7: {0xD7, "RST", 1, 32, none, rst},
+	0xDF: {0xDF, "RST", 1, 32, none, rst},
+	0xE7: {0xE7, "RST", 1, 32, none, rst},
+	0xEF: {0xEF, "RST", 1, 32, none, rst},
+	0xF7: {0xF7, "RST", 1, 32, none, rst},
+	0xFF: {0xFF, "RST", 1, 32, none, rst},
+	// NOP
+	0x00: {0x00, "NOP", 1, 4, none, nop},
+	// interrupts
+	0xF3: {0xF3, "DI", 1, 4, none, disableInterrupt},
+	0xFB: {0xFB, " EI", 1, 4, none, enableInterrupt},
+	// carry flag
+	0x37: {0x37, "SCF", 1, 4, none, scf},
+	0x3F: {0x3F, "CCF", 1, 4, none, ccf},
 }

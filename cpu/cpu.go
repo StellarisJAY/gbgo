@@ -18,6 +18,10 @@ type Processor struct {
 	pc uint16 // program counter
 
 	bus *bus.Bus
+
+	pendingInterruptSwitch int // EI和DI都不会立即切换中断状态，都需要等EI和DI之后一条指令执行后才切换状态
+	nextInterruptEnable    bool
+	interruptEnabled       bool
 }
 
 const (
@@ -56,6 +60,13 @@ func (p *Processor) run() {
 
 		if oldPc+1 == p.pc {
 			p.pc = oldPc + ins.length
+		}
+		// EI和DI要等待下一条指令结束才切换interrupt状态
+		if p.pendingInterruptSwitch == 0 {
+			p.pendingInterruptSwitch = -1
+			p.interruptEnabled = p.nextInterruptEnable
+		} else if p.pendingInterruptSwitch > 0 {
+			p.pendingInterruptSwitch -= 1
 		}
 	}
 }
