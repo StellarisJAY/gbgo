@@ -14,8 +14,9 @@ func rotateA(p *Processor, op *instruction) {
 }
 
 // rlc,rl, rrc, rr等opcode都是0xCB, 它们通过后面的立即数来编号
-func rotatesAndShifts(p *Processor, op *instruction) {
+func rotatesAndShifts(p *Processor, _ *instruction) {
 	code := p.readOperand8(p.pc, immediate)
+	p.pc += 1
 	switch {
 	case code <= 0x07:
 		rlc(p, code)
@@ -33,6 +34,12 @@ func rotatesAndShifts(p *Processor, op *instruction) {
 		swap(p, code)
 	case code >= 0x38 && code <= 0x3F:
 		srl(p, code)
+	case code >= 0x40 && code <= 0x47:
+		bit(p, code)
+	case code >= 0x80 && code <= 0x87:
+		resetBit(p, code)
+	case code >= 0xC0 && code <= 0xC7:
+		setBit(p, code)
 	}
 }
 
@@ -223,6 +230,84 @@ func swap(p *Processor, code byte) {
 	}
 }
 
+// BIT n, N; n = 0~7
+func bit(p *Processor, code byte) {
+	n := p.readOperand8(p.pc, immediate)
+	p.pc += 1
+	switch code {
+	case 0x40:
+		p.testBit(p.b, n)
+	case 0x41:
+		p.testBit(p.c, n)
+	case 0x42:
+		p.testBit(p.d, n)
+	case 0x43:
+		p.testBit(p.e, n)
+	case 0x44:
+		p.testBit(p.h, n)
+	case 0x45:
+		p.testBit(p.l, n)
+	case 0x46:
+		val := p.readMem8(p.reg16(p.h, p.l))
+		p.testBit(val, n)
+	case 0x47:
+		p.testBit(p.a, n)
+	}
+}
+
+// SET n, N; n = 0~7
+func setBit(p *Processor, code byte) {
+	n := p.readOperand8(p.pc, immediate)
+	p.pc += 1
+	switch code {
+	case 0xC0:
+		p.b = p.setBit(p.b, n)
+	case 0xC1:
+		p.c = p.setBit(p.c, n)
+	case 0xC2:
+		p.d = p.setBit(p.d, n)
+	case 0xC3:
+		p.e = p.setBit(p.e, n)
+	case 0xC4:
+		p.h = p.setBit(p.h, n)
+	case 0xC5:
+		p.l = p.setBit(p.l, n)
+	case 0xC6:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, func(val byte) byte {
+			return p.setBit(val, n)
+		})
+	case 0xC7:
+		p.a = p.setBit(p.a, n)
+	}
+}
+
+func resetBit(p *Processor, code byte) {
+	n := p.readOperand8(p.pc, immediate)
+	p.pc += 1
+	switch code {
+	case 0x80:
+		p.b = p.resetBit(p.b, n)
+	case 0x81:
+		p.c = p.resetBit(p.c, n)
+	case 0x82:
+		p.d = p.resetBit(p.d, n)
+	case 0x83:
+		p.e = p.resetBit(p.e, n)
+	case 0x84:
+		p.h = p.resetBit(p.h, n)
+	case 0x85:
+		p.l = p.resetBit(p.l, n)
+	case 0x86:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, func(val byte) byte {
+			return p.resetBit(val, n)
+		})
+	case 0x87:
+		p.a = p.resetBit(p.a, n)
+	}
+}
+
 func (p *Processor) rotateLeft(val byte) byte {
 	// carry设置为旧的bit 7
 	p.setFlag(carryFlag, val&0x80 != 0)
@@ -308,4 +393,22 @@ func (p *Processor) swapHighLow(val byte) byte {
 	p.setFlag(subFlag, false)
 	p.setFlag(halfCarryFlag, false)
 	return result
+}
+
+// testBit 获取val的bit n
+func (p *Processor) testBit(val, n byte) {
+	result := val&(1<<n) == 0
+	p.setFlag(zeroFlag, result)
+	p.setFlag(halfCarryFlag, true)
+	p.setFlag(subFlag, false)
+}
+
+// setBit 设置val的bit n
+func (p *Processor) setBit(val, n byte) byte {
+	return val | (1 << n)
+}
+
+// resetBit 清除val的bit n
+func (p *Processor) resetBit(val, n byte) byte {
+	return val & ^(1 << n)
 }
