@@ -13,12 +13,10 @@ func rotateA(p *Processor, op *instruction) {
 	}
 }
 
-// rlc,rl, rrc, rr的opcode都是0xCB, 它们通过后面的立即数来编号
+// rlc,rl, rrc, rr等opcode都是0xCB, 它们通过后面的立即数来编号
 func rotatesAndShifts(p *Processor, op *instruction) {
 	code := p.readOperand8(p.pc, immediate)
 	switch {
-	case code == 0x06 || code == 0x16 || code == 0x26 || code == 0x0E || code == 0x1E || code == 0x2E || code == 0x3E: // todo 16bit (HL) 位移
-
 	case code <= 0x07:
 		rlc(p, code)
 	case code >= 0x08 && code <= 0x0F:
@@ -31,6 +29,8 @@ func rotatesAndShifts(p *Processor, op *instruction) {
 		sla(p, code)
 	case code >= 0x28 && code <= 0x2F:
 		sra(p, code)
+	case code >= 0x30 && code <= 0x37:
+		swap(p, code)
 	case code >= 0x38 && code <= 0x3F:
 		srl(p, code)
 	}
@@ -50,6 +50,9 @@ func rlc(p *Processor, code byte) {
 		p.h = p.rotateLeft(p.h)
 	case 0x05:
 		p.l = p.rotateLeft(p.l)
+	case 0x06:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, p.rotateLeft)
 	case 0x07:
 		p.a = p.rotateLeft(p.a)
 	}
@@ -69,6 +72,9 @@ func rl(p *Processor, code byte) {
 		p.h = p.rotateLeftCarry(p.h)
 	case 0x15:
 		p.l = p.rotateLeftCarry(p.l)
+	case 0x16:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, p.rotateLeftCarry)
 	case 0x17:
 		p.a = p.rotateLeftCarry(p.a)
 	}
@@ -88,6 +94,9 @@ func rrc(p *Processor, code byte) {
 		p.h = p.rotateRight(p.h)
 	case 0x0D:
 		p.l = p.rotateRight(p.l)
+	case 0x0E:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, p.rotateRight)
 	case 0x0F:
 		p.a = p.rotateRight(p.a)
 	}
@@ -107,6 +116,9 @@ func rr(p *Processor, code byte) {
 		p.h = p.rotateRightCarry(p.h)
 	case 0x1D:
 		p.l = p.rotateRightCarry(p.l)
+	case 0x1E:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, p.rotateRightCarry)
 	case 0x1F:
 		p.a = p.rotateRightCarry(p.a)
 	}
@@ -128,6 +140,9 @@ func sla(p *Processor, code byte) {
 		p.h = p.shiftLeft(p.h)
 	case 0x25:
 		p.l = p.shiftLeft(p.l)
+	case 0x26:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, p.shiftLeft)
 	case 0x27:
 		p.a = p.shiftLeft(p.a)
 	}
@@ -149,6 +164,11 @@ func sra(p *Processor, code byte) {
 		p.h = p.shiftRight(p.h, false)
 	case 0x2D:
 		p.l = p.shiftRight(p.l, false)
+	case 0x2E:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, func(val byte) byte {
+			return p.shiftRight(val, false)
+		})
 	case 0x2F:
 		p.a = p.shiftRight(p.a, false)
 	}
@@ -170,8 +190,36 @@ func srl(p *Processor, code byte) {
 		p.h = p.shiftRight(p.h, true)
 	case 0x3D:
 		p.l = p.shiftRight(p.l, true)
+	case 0x3E:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, func(val byte) byte {
+			return p.shiftRight(val, true)
+		})
 	case 0x3F:
 		p.a = p.shiftRight(p.a, true)
+	}
+}
+
+// SWAP N
+func swap(p *Processor, code byte) {
+	switch code {
+	case 0x30:
+		p.b = p.swapHighLow(p.b)
+	case 0x31:
+		p.c = p.swapHighLow(p.c)
+	case 0x32:
+		p.d = p.swapHighLow(p.d)
+	case 0x33:
+		p.e = p.swapHighLow(p.e)
+	case 0x34:
+		p.h = p.swapHighLow(p.h)
+	case 0x35:
+		p.l = p.swapHighLow(p.l)
+	case 0x36:
+		addr := p.reg16(p.h, p.l)
+		p.modifyMemory8(addr, p.swapHighLow)
+	case 0x37:
+		p.a = p.swapHighLow(p.a)
 	}
 }
 
@@ -246,6 +294,17 @@ func (p *Processor) shiftRight(val byte, changeMSB bool) byte {
 	p.setFlag(carryFlag, val&1 != 0)
 	result := val>>1 | msb
 	p.setFlag(zeroFlag, result == 0)
+	p.setFlag(subFlag, false)
+	p.setFlag(halfCarryFlag, false)
+	return result
+}
+
+// swap 交换高低半字节
+func (p *Processor) swapHighLow(val byte) byte {
+	high, low := val>>4, val&0xf
+	result := low<<4 | high
+	p.setFlag(zeroFlag, result == 0)
+	p.setFlag(carryFlag, false)
 	p.setFlag(subFlag, false)
 	p.setFlag(halfCarryFlag, false)
 	return result

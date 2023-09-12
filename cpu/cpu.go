@@ -153,3 +153,9 @@ func (p *Processor) determineHalfCarry(original, delta byte) {
 	halfCarry := original&0xf+delta > 0xf || original&0xf > delta
 	p.setFlag(halfCarryFlag, halfCarry)
 }
+
+// 调用modifier修改一个内存地址
+func (p *Processor) modifyMemory8(addr uint16, modifier func(byte) byte) {
+	result := modifier(p.readMem8(addr))
+	p.writeMem8(addr, result)
+}
