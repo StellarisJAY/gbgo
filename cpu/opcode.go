@@ -267,6 +267,11 @@ var instructionSet = map[byte]*instruction{
 	0x1B: {0x1B, "DEC", 1, 8, none, dec16},
 	0x2B: {0x2B, "DEC", 1, 8, none, dec16},
 	0x3B: {0x3B, "DEC", 1, 8, none, dec16},
-	// Rotates shifts
+	// Rotate A
+	0x07: {0x07, "RLCA", 1, 4, none, rotateA},
+	0x17: {0x17, "RLA", 1, 4, none, rotateA},
+	0x0f: {0x0f, "RRCA", 1, 4, none, rotateA},
+	0x1f: {0x1f, "RRA", 1, 4, none, rotateA},
+	// Rotates and shifts
 	0xCB: {0xCB, "ROTATES_SHIFTS", 1, 8, none, rotatesAndShifts},
 }
