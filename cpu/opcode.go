@@ -288,4 +288,15 @@ var instructionSet = map[byte]*instruction{
 	0x28: {0x28, "JRC", 1, 8, immediate, jrc},
 	0x30: {0x30, "JRC", 1, 8, immediate, jrc},
 	0x38: {0x38, "JRC", 1, 8, immediate, jrc},
+	// function calls and returns
+	0xCD: {0xCD, "CALL", 1, 12, immediate, call},
+	0xC4: {0xC4, "CALLC", 1, 12, immediate, callC},
+	0xCC: {0xCC, "CALLC", 1, 12, immediate, callC},
+	0xD4: {0xD4, "CALLC", 1, 12, immediate, callC},
+	0xDC: {0xDC, "CALLC", 1, 12, immediate, callC},
+	0xC9: {0xC9, "RET", 1, 8, none, ret},
+	0xC0: {0xC0, "RETC", 1, 8, none, retc},
+	0xC8: {0xC8, "RETC", 1, 8, none, retc},
+	0xD0: {0xD0, "RETC", 1, 8, none, retc},
+	0xD8: {0xD8, "RETC", 1, 8, none, retc},
 }
