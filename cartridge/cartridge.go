@@ -3,26 +3,42 @@ package cartridge
 import "fmt"
 
 type header struct {
-	title            string // game title in upper case
-	manufacturerCode string // manufacturer code in upper case
+	title            string // 游戏名称，大写ASCII
+	manufacturerCode string // 生产商编号，大写ASCII
 	cgbOnly          bool
-	mapper           byte   // mapper number
-	romSize          uint32 // rom size
-	ramSize          uint32 // ram size
+	mbc              byte   // MBC
+	romSize          uint32 // rom 字节大小
+	ramSize          uint32 // ram 字节大小
 
 	entryPoint []byte
 }
 
 type BasicCartridge struct {
 	h   header
-	raw []byte // raw data
+	raw []byte
+	mbc MBC // MBC接口
+}
+
+// MBC 接口，所有MBC必须实现读写地址
+type MBC interface {
+	Read(addr uint16) byte
+	Write(addr uint16, data byte)
 }
 
 func MakeBasicCartridge(raw []byte) BasicCartridge {
+	header := makeHeader(raw)
 	return BasicCartridge{
-		h:   makeHeader(raw),
+		h:   header,
 		raw: raw,
 	}
+}
+
+func (bc *BasicCartridge) Read(addr uint16) byte {
+	return bc.mbc.Read(addr)
+}
+
+func (bc *BasicCartridge) Write(addr uint16, data byte) {
+	bc.mbc.Write(addr, data)
 }
 
 func makeHeader(raw []byte) header {
@@ -56,7 +72,7 @@ func makeHeader(raw []byte) header {
 		title:            title,
 		manufacturerCode: code,
 		cgbOnly:          cgbOnly,
-		mapper:           raw[0x147],
+		mbc:              raw[0x147],
 		romSize:          romSize,
 		ramSize:          ramSize,
 		entryPoint:       raw[0x100:0x104],
@@ -66,7 +82,8 @@ func makeHeader(raw []byte) header {
 func (bc *BasicCartridge) Info() {
 	fmt.Println("title: ", bc.h.title)
 	fmt.Println("manufacturer: ", bc.h.manufacturerCode)
-	fmt.Printf("mapper num: %d\n", bc.h.mapper)
+	fmt.Printf("mbc num: %d\n", bc.h.mbc)
+	fmt.Println("cgb mode: ", bc.h.cgbOnly)
 	fmt.Printf("rom size: %d KiB\n", bc.h.romSize>>10)
 	fmt.Printf("ram size: %d KiB\n", bc.h.ramSize>>10)
 }
