@@ -3,6 +3,7 @@ package cpu
 import (
 	"fmt"
 	"github.com/StellarisJAY/gbgo/bus"
+	"math"
 )
 
 type Processor struct {
@@ -22,6 +23,8 @@ type Processor struct {
 	pendingInterruptSwitch int // EI和DI都不会立即切换中断状态，都需要等EI和DI之后一条指令执行后才切换状态
 	nextInterruptEnable    bool
 	interruptEnabled       bool
+
+	lastTickTime int64
 }
 
 const (
@@ -30,6 +33,9 @@ const (
 	halfCarryFlag      // 半字节carry, 加法向第四位进位 或 减法不从第四位借位时设置
 	subFlag
 	zeroFlag
+
+	cpuFrequency      int64 = 4194304 // CPU频率，4.194304MHz, 每毫秒4194周期
+	cpuFrequencyMilli       = cpuFrequency / 1000
 )
 
 // memoryMode 指令寻址模式
@@ -44,11 +50,12 @@ const (
 	none
 )
 
-func (p *Processor) run() {
-	for {
-		if p.pc == 0 {
-			break
-		}
+// Tick 每渲染一帧画面CPU tick一次，通过计算两次渲染之间的时间间隔来控制CPU的指令周期
+func (p *Processor) Tick(time int64) {
+	var cycles int64 = math.MaxInt64
+	// 上一次tick与当前时间之间的cpu周期数
+	totalCycles := (time - p.lastTickTime) * cpuFrequencyMilli
+	for cycles <= totalCycles {
 		oldPc := p.pc
 		opCode := p.readOperand8(p.pc, immediate)
 		p.pc++
@@ -61,6 +68,7 @@ func (p *Processor) run() {
 		if oldPc+1 == p.pc {
 			p.pc = oldPc + ins.length
 		}
+		cycles += int64(ins.cycles)
 		// EI和DI要等待下一条指令结束才切换interrupt状态
 		if p.pendingInterruptSwitch == 0 {
 			p.pendingInterruptSwitch = -1
