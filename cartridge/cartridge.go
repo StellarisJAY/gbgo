@@ -27,9 +27,17 @@ type MBC interface {
 
 func MakeBasicCartridge(raw []byte) BasicCartridge {
 	header := makeHeader(raw)
+	var mbc MBC
+	switch header.mbc {
+	case 0:
+		mbc = makeNoMBC(raw, header.ramSize)
+	default:
+		panic(fmt.Errorf("unsupported mbc %d", mbc))
+	}
 	return BasicCartridge{
 		h:   header,
 		raw: raw,
+		mbc: mbc,
 	}
 }
 

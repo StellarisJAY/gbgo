@@ -7,6 +7,18 @@ type NoMBC struct {
 	usingRam bool
 }
 
+func makeNoMBC(raw []byte, ramSize uint32) *NoMBC {
+	var ram []byte
+	if ramSize > 0 {
+		ram = make([]byte, ramSize)
+	}
+	return &NoMBC{
+		rom:      raw,
+		ram:      ram,
+		usingRam: ramSize > 0,
+	}
+}
+
 func (n *NoMBC) Read(addr uint16) byte {
 	switch {
 	case addr <= 0x7FFF:
