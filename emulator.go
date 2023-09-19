@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/StellarisJAY/gbgo/bus"
 	"github.com/StellarisJAY/gbgo/cartridge"
 	"github.com/StellarisJAY/gbgo/cpu"
 	"github.com/StellarisJAY/gbgo/ppu"
@@ -27,6 +28,8 @@ type Emulator struct {
 	texture  *sdl.Texture
 
 	cpu           *cpu.Processor
+	ppu           *ppu.PPU
+	bus           *bus.Bus
 	lastFrameTime int64
 }
 
@@ -84,16 +87,23 @@ func MakeEmulator() *Emulator {
 	raw := readGbFile(conf.file)
 	c := cartridge.MakeBasicCartridge(raw)
 	window, renderer, texture := initSDL(conf)
+	b := bus.MakeBus(&c)
+	processor := cpu.MakeCPU(b)
 	return &Emulator{
 		conf:     conf,
 		game:     c,
 		window:   window,
 		renderer: renderer,
 		texture:  texture,
+		bus:      b,
+		cpu:      processor,
+		ppu:      ppu.MakePPU(),
 	}
 }
 
 func (e *Emulator) start() {
+	// 重置cpu各个寄存器
+	e.cpu.Reset()
 	interval := 1000 / e.conf.fps
 	ticker := time.NewTicker(time.Duration(interval) * time.Millisecond)
 	e.lastFrameTime = time.Now().UnixMilli()
@@ -108,14 +118,19 @@ func (e *Emulator) start() {
 // Update 每一帧更新一次，每次Update进行IO、执行CPU指令、渲染画面
 func (e *Emulator) Update() {
 	frameTime := time.Now().UnixMilli()
+	// 输入事件处理
 	e.handleEvents()
+	// cpu tick
+	e.cpu.Tick(frameTime)
+	// 渲染画面
 	e.renderFrame()
-	fmt.Printf("\b\b\b\b\b\b\bfps: %2d", 1000/(frameTime-e.lastFrameTime))
 	e.lastFrameTime = frameTime
 }
 
 func (e *Emulator) renderFrame() {
-	ppu.RenderStartingPage()
+	// ppu渲染tiles和sprites，生成frame数据
+	e.ppu.Render()
+	// frame数据渲染到屏幕
 	frame := ppu.FrameData()
 	_ = e.texture.Update(nil, unsafe.Pointer(&frame[0]), ppu.Width*3)
 	_ = e.renderer.Copy(e.texture, nil, nil)

@@ -26,7 +26,7 @@ func FrameData() []byte {
 	return frame
 }
 
-func RenderStartingPage() {
+func renderStartingPage() {
 	var x, y uint32 = Width/2 - 8, Height/2 - 8
 	for i := uint32(0); i < 8; i++ {
 		for j := uint32(0); j < 8; j++ {

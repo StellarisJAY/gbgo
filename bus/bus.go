@@ -4,9 +4,19 @@ import "github.com/StellarisJAY/gbgo/cartridge"
 
 // Bus 虚拟总线，cpu通过总线地址访问内存和硬件
 type Bus struct {
-	workRAM0  []byte                    // 固定的bank 0
-	workRAM1  []byte                    // cgbMode，可切换的workRam的bank 1~7
+	workRAM0  []byte // 固定的bank 0
+	workRAM1  []byte // cgbMode，可切换的workRam的bank 1~7
+	highRAM   []byte
 	cartridge *cartridge.BasicCartridge // 卡带数据
+}
+
+func MakeBus(cart *cartridge.BasicCartridge) *Bus {
+	return &Bus{
+		workRAM0:  make([]byte, 0x1000),
+		workRAM1:  make([]byte, 0x1000),
+		highRAM:   make([]byte, 0xFFFF-0xFF80),
+		cartridge: cart,
+	}
 }
 
 func (b *Bus) ReadMem8(addr uint16) byte {
@@ -21,6 +31,8 @@ func (b *Bus) ReadMem8(addr uint16) byte {
 		return b.workRAM0[addr-0xC000]
 	case addr >= 0xD000 && addr <= 0xDFFF: // work ram bank 1~7
 		return b.workRAM1[addr-0xD000]
+	case addr >= 0xFF80 && addr <= 0xFFFE:
+		return b.highRAM[addr-0xFF80]
 	}
 	return 0
 }
@@ -37,6 +49,8 @@ func (b *Bus) WriteMem8(addr uint16, data byte) {
 		b.workRAM0[addr-0xC000] = data
 	case addr >= 0xD000 && addr <= 0xDFFF: // work ram bank 1~7
 		b.workRAM1[addr-0xD000] = data
+	case addr >= 0xFF80 && addr <= 0xFFFE:
+		b.highRAM[addr-0xFF80] = data
 	}
 }
 

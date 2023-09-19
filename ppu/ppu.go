@@ -3,6 +3,10 @@ package ppu
 type PPU struct {
 }
 
-func (p *PPU) Render() {
+func MakePPU() *PPU {
+	return &PPU{}
+}
 
+func (p *PPU) Render() {
+	renderStartingPage()
 }
