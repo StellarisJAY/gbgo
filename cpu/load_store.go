@@ -16,6 +16,8 @@ func loadImmediate8(p *Processor, op *instruction) {
 		p.h = data
 	case 0x2E:
 		p.l = data
+	case 0x3E:
+		p.a = data
 	default:
 		panic("impossible opcode")
 	}

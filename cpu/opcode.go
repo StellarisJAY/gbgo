@@ -39,6 +39,7 @@ var instructionSet = map[byte]*instruction{
 	0x1E: {0x1E, "LD", 2, 8, immediate, loadImmediate8},
 	0x26: {0x26, "LD", 2, 8, immediate, loadImmediate8},
 	0x2E: {0x2E, "LD", 2, 8, immediate, loadImmediate8},
+	0x3E: {0x3E, "LD", 2, 8, immediate, loadImmediate8},
 	// ld r16, n16
 	0x01: {0x01, "LD", 3, 12, immediate, loadImmediate16},
 	0x11: {0x11, "LD", 3, 12, immediate, loadImmediate16},
@@ -250,6 +251,8 @@ var instructionSet = map[byte]*instruction{
 	0xBE: {0xBE, "CP", 1, 8, none, compareA},
 	0xBF: {0xBF, "CP", 1, 4, none, compareA},
 	0xFE: {0xFE, "CP", 1, 8, immediate, compareA},
+	// CPL
+	0x2F: {0x2F, "CPL", 1, 4, none, cpl},
 	// ADD HL, N
 	0x09: {0x09, "ADD_HL", 1, 8, none, addHL},
 	0x19: {0x19, "ADD_HL", 1, 8, none, addHL},

@@ -310,3 +310,9 @@ func dec16(p *Processor, op *instruction) {
 		p.sp -= 1
 	}
 }
+
+func cpl(p *Processor, _ *instruction) {
+	p.a = ^p.a
+	p.setFlag(halfCarryFlag, true)
+	p.setFlag(subFlag, true)
+}
