@@ -3,7 +3,7 @@ package cpu
 import (
 	"fmt"
 	"github.com/StellarisJAY/gbgo/bus"
-	"math"
+	"time"
 )
 
 type Processor struct {
@@ -25,6 +25,7 @@ type Processor struct {
 	interruptEnabled       bool
 
 	lastTickTime int64
+	cycles       int64
 }
 
 const (
@@ -50,25 +51,35 @@ const (
 	none
 )
 
+func MakeCPU(b *bus.Bus) *Processor {
+	return &Processor{
+		bus: b,
+	}
+}
+
 // Tick 每渲染一帧画面CPU tick一次，通过计算两次渲染之间的时间间隔来控制CPU的指令周期
 func (p *Processor) Tick(time int64) {
-	var cycles int64 = math.MaxInt64
+	oldCycles := p.cycles
 	// 上一次tick与当前时间之间的cpu周期数
-	totalCycles := (time - p.lastTickTime) * cpuFrequencyMilli
-	for cycles <= totalCycles {
+	curTickCycles := (time - p.lastTickTime) * cpuFrequencyMilli
+	for p.cycles <= oldCycles+curTickCycles {
 		oldPc := p.pc
 		opCode := p.readOperand8(p.pc, immediate)
 		p.pc++
+		if opCode == 0x10 {
+			p.pc += 1
+			continue
+		}
 		ins, exists := instructionSet[opCode]
 		if !exists {
-			panic(fmt.Errorf("unknown opcode at 0x%x:  %x", oldPc, opCode))
+			panic(fmt.Errorf("unknown opcode at 0x%4X:  0x%2X", oldPc, opCode))
 		}
+		fmt.Printf("%2X %s\n", opCode, ins.name)
 		ins.execute(p, nil)
-
 		if oldPc+1 == p.pc {
 			p.pc = oldPc + ins.length
 		}
-		cycles += int64(ins.cycles)
+		p.cycles += int64(ins.cycles)
 		// EI和DI要等待下一条指令结束才切换interrupt状态
 		if p.pendingInterruptSwitch == 0 {
 			p.pendingInterruptSwitch = -1
@@ -77,6 +88,23 @@ func (p *Processor) Tick(time int64) {
 			p.pendingInterruptSwitch -= 1
 		}
 	}
+	p.lastTickTime = time
+}
+
+// Reset cpu status
+func (p *Processor) Reset() {
+	// entry point
+	p.pc = 0x0100
+	// stack bottom
+	p.sp = 0xFFFE
+	p.b, p.c = 0, 0
+	p.d, p.e = 0, 0
+	p.h, p.l = 0, 0
+	p.a, p.f = 0, 0
+	p.pendingInterruptSwitch = -1
+	p.nextInterruptEnable = false
+	p.interruptEnabled = false
+	p.lastTickTime = time.Now().UnixMilli()
 }
 
 func (p *Processor) readOperand8(pc uint16, mode memoryMode) byte {
