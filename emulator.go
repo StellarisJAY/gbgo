@@ -18,6 +18,7 @@ type config struct {
 	file  string
 	scale int
 	fps   int64
+	trace bool
 }
 
 type Emulator struct {
@@ -31,6 +32,8 @@ type Emulator struct {
 	ppu           *ppu.PPU
 	bus           *bus.Bus
 	lastFrameTime int64
+
+	traceFunc cpu.InstructionCallback
 }
 
 func parseConfigs() *config {
@@ -38,6 +41,7 @@ func parseConfigs() *config {
 	flag.StringVar(&conf.file, "file", "", "game rom file")
 	flag.IntVar(&conf.scale, "scale", 1, "window scale")
 	flag.Int64Var(&conf.fps, "fps", 30, "frame rate")
+	flag.BoolVar(&conf.trace, "trace", false, "trace instructions")
 	flag.Parse()
 	if conf.fps < 20 {
 		conf.fps = 20
@@ -64,7 +68,7 @@ func initSDL(conf *config) (*sdl.Window, *sdl.Renderer, *sdl.Texture) {
 	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
 		panic(fmt.Errorf("init sdl error %w", err))
 	}
-	window, err := sdl.CreateWindow("gbgo", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
+	window, err := sdl.CreateWindow("GBGo", sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED,
 		int32(ppu.Width*conf.scale), int32(ppu.Height*conf.scale), sdl.WINDOW_SHOWN)
 	if err != nil {
 		panic(fmt.Errorf("sdl create window error %w", err))
@@ -89,15 +93,20 @@ func MakeEmulator() *Emulator {
 	window, renderer, texture := initSDL(conf)
 	b := bus.MakeBus(&c)
 	processor := cpu.MakeCPU(b)
+	var traceFunc cpu.InstructionCallback
+	if conf.trace {
+		traceFunc = logInstruction
+	}
 	return &Emulator{
-		conf:     conf,
-		game:     c,
-		window:   window,
-		renderer: renderer,
-		texture:  texture,
-		bus:      b,
-		cpu:      processor,
-		ppu:      ppu.MakePPU(),
+		conf:      conf,
+		game:      c,
+		window:    window,
+		renderer:  renderer,
+		texture:   texture,
+		bus:       b,
+		cpu:       processor,
+		ppu:       ppu.MakePPU(),
+		traceFunc: traceFunc,
 	}
 }
 
@@ -121,7 +130,7 @@ func (e *Emulator) Update() {
 	// 输入事件处理
 	e.handleEvents()
 	// cpu tick
-	e.cpu.Tick(frameTime, logInstruction)
+	e.cpu.Tick(frameTime, e.traceFunc)
 	// 渲染画面
 	e.renderFrame()
 	e.lastFrameTime = frameTime
