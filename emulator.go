@@ -121,7 +121,7 @@ func (e *Emulator) Update() {
 	// 输入事件处理
 	e.handleEvents()
 	// cpu tick
-	e.cpu.Tick(frameTime)
+	e.cpu.Tick(frameTime, logInstruction)
 	// 渲染画面
 	e.renderFrame()
 	e.lastFrameTime = frameTime

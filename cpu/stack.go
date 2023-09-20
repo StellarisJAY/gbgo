@@ -1,7 +1,7 @@
 package cpu
 
 // ld SP, HL
-func loadSP(p *Processor, _ *instruction) {
+func loadSP(p *Processor, _ *Instruction) {
 	p.sp = p.reg16(p.h, p.l)
 }
 
@@ -17,7 +17,7 @@ func (p *Processor) stackPop16() uint16 {
 }
 
 // push
-func pushReg(p *Processor, op *instruction) {
+func pushReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0xC5:
 		p.stackPush16(p.reg16(p.b, p.c))
@@ -31,7 +31,7 @@ func pushReg(p *Processor, op *instruction) {
 }
 
 // pop
-func popReg(p *Processor, op *instruction) {
+func popReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0xC1:
 		p.writeBC(p.stackPop16())
@@ -45,7 +45,7 @@ func popReg(p *Processor, op *instruction) {
 }
 
 // ADD SP, n8
-func addSP(p *Processor, op *instruction) {
+func addSP(p *Processor, op *Instruction) {
 	delta := p.readOperand8(p.pc, op.mode)
 	if delta&0x80 == 0 {
 		// positive

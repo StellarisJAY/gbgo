@@ -2,7 +2,7 @@ package cpu
 
 // inc N; N=r8,(HL)
 // N = N + 1, z0h-
-func inc(p *Processor, op *instruction) {
+func inc(p *Processor, op *Instruction) {
 	var result, original byte
 	switch op.code {
 	case 0x04:
@@ -45,7 +45,7 @@ func inc(p *Processor, op *instruction) {
 
 // dec N; N = r8, (HL)
 // N = N-1, z1h-
-func dec(p *Processor, op *instruction) {
+func dec(p *Processor, op *Instruction) {
 	var result, original byte
 	switch op.code {
 	case 0x05:
@@ -88,7 +88,7 @@ func dec(p *Processor, op *instruction) {
 
 // ADD A, N; N = r8, n8, (HL)
 // A = A + N; z0hc
-func addA(p *Processor, op *instruction) {
+func addA(p *Processor, op *Instruction) {
 	original := p.a
 	var delta byte
 	switch op.code {
@@ -121,7 +121,7 @@ func addA(p *Processor, op *instruction) {
 
 // ADC A, N; N = r8, (HL), n8
 // A = A + N + carry; z0hc
-func addAWithCarry(p *Processor, op *instruction) {
+func addAWithCarry(p *Processor, op *Instruction) {
 	original := p.a
 	var delta, carry byte
 	switch op.code {
@@ -157,7 +157,7 @@ func addAWithCarry(p *Processor, op *instruction) {
 
 // SUB A, N; N = r8,n8,(HL)
 // A = A - N; z1hc
-func subA(p *Processor, op *instruction) {
+func subA(p *Processor, op *Instruction) {
 	original := p.a
 	var delta byte
 	switch op.code {
@@ -189,7 +189,7 @@ func subA(p *Processor, op *instruction) {
 
 // SBC A, N; N = r8,n8,(HL)
 // A = A - N - carry; z1hc
-func subAWithCarry(p *Processor, op *instruction) {
+func subAWithCarry(p *Processor, op *Instruction) {
 	original := p.a
 	var delta, carry byte
 	switch op.code {
@@ -226,7 +226,7 @@ func subAWithCarry(p *Processor, op *instruction) {
 // z1hc
 // c: A < N
 // z: A == N
-func compareA(p *Processor, op *instruction) {
+func compareA(p *Processor, op *Instruction) {
 	var data byte
 	switch op.code {
 	case 0xB8:
@@ -262,7 +262,7 @@ func (p *Processor) compare(val1, val2 byte) {
 // -0hc
 // h: carry from bit 11
 // c: carry from bit 15
-func addHL(p *Processor, op *instruction) {
+func addHL(p *Processor, op *Instruction) {
 	original := p.reg16(p.h, p.l)
 	var delta uint16
 	switch op.code {
@@ -284,7 +284,7 @@ func addHL(p *Processor, op *instruction) {
 }
 
 // INC r16
-func inc16(p *Processor, op *instruction) {
+func inc16(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x03:
 		p.writeBC(p.reg16(p.b, p.c) + 1)
@@ -298,7 +298,7 @@ func inc16(p *Processor, op *instruction) {
 }
 
 // DEC r16
-func dec16(p *Processor, op *instruction) {
+func dec16(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x0B:
 		p.writeBC(p.reg16(p.b, p.c) - 1)
@@ -311,8 +311,29 @@ func dec16(p *Processor, op *instruction) {
 	}
 }
 
-func cpl(p *Processor, _ *instruction) {
+func cpl(p *Processor, _ *Instruction) {
 	p.a = ^p.a
 	p.setFlag(halfCarryFlag, true)
 	p.setFlag(subFlag, true)
+}
+
+func daa(p *Processor, _ *Instruction) {
+	if !p.getFlag(subFlag) {
+		if p.getFlag(carryFlag) || p.a > 0x99 {
+			p.a += 0x60
+			p.setFlag(carryFlag, true)
+		}
+		if p.getFlag(halfCarryFlag) || p.a&0x0f > 0x09 {
+			p.a += 0x06
+			p.setFlag(halfCarryFlag, false)
+		}
+	} else if p.getFlag(carryFlag) && p.getFlag(halfCarryFlag) {
+		p.a = 0x9A
+		p.setFlag(halfCarryFlag, false)
+	} else if p.getFlag(carryFlag) {
+		p.a = 0xA0
+	} else if p.getFlag(halfCarryFlag) {
+		p.a = 0xFA
+		p.setFlag(halfCarryFlag, false)
+	}
 }

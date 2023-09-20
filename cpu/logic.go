@@ -1,7 +1,7 @@
 package cpu
 
 // AND A, N; N = r8, n8, (HL)
-func andWithA(p *Processor, op *instruction) {
+func andWithA(p *Processor, op *Instruction) {
 	var param byte
 	switch op.code {
 	case 0xA0: // AND A, B
@@ -30,7 +30,7 @@ func andWithA(p *Processor, op *instruction) {
 }
 
 // OR A, N; N = r8, n8, (HL)
-func orWithA(p *Processor, op *instruction) {
+func orWithA(p *Processor, op *Instruction) {
 	var param byte
 	switch op.code {
 	case 0xB0: // AND A, B
@@ -59,7 +59,7 @@ func orWithA(p *Processor, op *instruction) {
 }
 
 // XOR A, N; N = r8, n8, (HL)
-func xorWithA(p *Processor, op *instruction) {
+func xorWithA(p *Processor, op *Instruction) {
 	var param byte
 	switch op.code {
 	case 0xA8:

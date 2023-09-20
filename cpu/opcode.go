@@ -1,7 +1,7 @@
 package cpu
 
-// instruction 指令信息
-type instruction struct {
+// Instruction 指令信息
+type Instruction struct {
 	code    byte               // opcode
 	name    string             // 指令别名
 	length  uint16             // 指令长度，字节
@@ -12,26 +12,50 @@ type instruction struct {
 
 // ProcessorContext cpu当前的上下文，在callback中使用
 type ProcessorContext struct {
+	PC uint16
+	SP uint16
+	AF uint16
+	BC uint16
+	DE uint16
+	HL uint16
+
+	Cycles int64
 }
 
-type instructionHandler func(p *Processor, op *instruction)
-type InstructionCallback func(ctx ProcessorContext, op *instruction)
+func (ins *Instruction) Code() byte {
+	return ins.code
+}
+
+func (ins *Instruction) Name() string {
+	return ins.name
+}
+
+type instructionHandler func(p *Processor, op *Instruction)
+type InstructionCallback func(ctx ProcessorContext, op *Instruction)
 
 // execute 执行指令并调用回调函数
-func (ins *instruction) execute(p *Processor, callback InstructionCallback) {
-	ins.handler(p, ins)
+func (ins *Instruction) execute(p *Processor, callback InstructionCallback) {
 	if callback != nil {
 		callback(p.getContext(), ins)
 	}
+	ins.handler(p, ins)
 }
 
 // getContext 获取当前cpu上下文
 func (p *Processor) getContext() ProcessorContext {
-	return ProcessorContext{}
+	return ProcessorContext{
+		PC:     p.pc,
+		SP:     p.sp,
+		AF:     p.reg16(p.a, p.f),
+		BC:     p.reg16(p.b, p.c),
+		DE:     p.reg16(p.d, p.e),
+		HL:     p.reg16(p.h, p.l),
+		Cycles: p.cycles,
+	}
 }
 
 // 指令集，按照指令类型排序
-var instructionSet = map[byte]*instruction{
+var instructionSet = map[byte]*Instruction{
 	// ld r8, n8
 	0x06: {0x06, "LD", 2, 8, immediate, loadImmediate8},
 	0x0E: {0x0E, "LD", 2, 8, immediate, loadImmediate8},
@@ -253,6 +277,8 @@ var instructionSet = map[byte]*instruction{
 	0xFE: {0xFE, "CP", 1, 8, immediate, compareA},
 	// CPL
 	0x2F: {0x2F, "CPL", 1, 4, none, cpl},
+	// DAA
+	0x27: {0x27, "DAA", 1, 4, none, daa},
 	// ADD HL, N
 	0x09: {0x09, "ADD_HL", 1, 8, none, addHL},
 	0x19: {0x19, "ADD_HL", 1, 8, none, addHL},

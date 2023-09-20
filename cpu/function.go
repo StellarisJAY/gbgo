@@ -17,12 +17,12 @@ func (p *Processor) conditionalReturn(condition bool) {
 	}
 }
 
-func call(p *Processor, op *instruction) {
+func call(p *Processor, op *Instruction) {
 	target := p.readOperand16(p.pc, op.mode)
 	p.conditionalCall(target, true)
 }
 
-func callC(p *Processor, op *instruction) {
+func callC(p *Processor, op *Instruction) {
 	target := p.readOperand16(p.pc, op.mode)
 	condition := false
 	switch op.code {
@@ -38,11 +38,11 @@ func callC(p *Processor, op *instruction) {
 	p.conditionalCall(target, condition)
 }
 
-func ret(p *Processor, _ *instruction) {
+func ret(p *Processor, _ *Instruction) {
 	p.conditionalReturn(true)
 }
 
-func retc(p *Processor, op *instruction) {
+func retc(p *Processor, op *Instruction) {
 	condition := false
 	switch op.code {
 	case 0xC0:

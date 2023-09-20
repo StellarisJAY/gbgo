@@ -7,7 +7,7 @@ func (p *Processor) restart(vector uint16) {
 }
 
 // rst: 重启程序，跳转到restart地址：0x00,0x08...0x30,0x38
-func rst(p *Processor, op *instruction) {
+func rst(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0xC7:
 		p.restart(0x00)
@@ -28,20 +28,20 @@ func rst(p *Processor, op *instruction) {
 	}
 }
 
-func nop(_ *Processor, _ *instruction) {}
+func nop(_ *Processor, _ *Instruction) {}
 
-func enableInterrupt(p *Processor, _ *instruction) {
+func enableInterrupt(p *Processor, _ *Instruction) {
 	p.pendingInterruptSwitch = 1
 	p.nextInterruptEnable = true
 }
 
-func disableInterrupt(p *Processor, _ *instruction) {
+func disableInterrupt(p *Processor, _ *Instruction) {
 	p.pendingInterruptSwitch = 1
 	p.nextInterruptEnable = false
 }
 
 // carryFlag取反
-func ccf(p *Processor, _ *instruction) {
+func ccf(p *Processor, _ *Instruction) {
 	carry := p.getFlag(carryFlag)
 	if carry {
 		p.setFlag(carryFlag, false)
@@ -51,6 +51,6 @@ func ccf(p *Processor, _ *instruction) {
 }
 
 // 设置carryFlag
-func scf(p *Processor, _ *instruction) {
+func scf(p *Processor, _ *Instruction) {
 	p.setFlag(carryFlag, true)
 }

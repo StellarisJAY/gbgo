@@ -1,6 +1,6 @@
 package cpu
 
-func rotateA(p *Processor, op *instruction) {
+func rotateA(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x07:
 		p.a = p.rotateLeft(p.a)
@@ -14,7 +14,7 @@ func rotateA(p *Processor, op *instruction) {
 }
 
 // rlc,rl, rrc, rr等opcode都是0xCB, 它们通过后面的立即数来编号
-func rotatesAndShifts(p *Processor, _ *instruction) {
+func rotatesAndShifts(p *Processor, _ *Instruction) {
 	code := p.readOperand8(p.pc, immediate)
 	p.pc += 1
 	switch {

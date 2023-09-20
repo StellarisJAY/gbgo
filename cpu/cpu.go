@@ -58,7 +58,7 @@ func MakeCPU(b *bus.Bus) *Processor {
 }
 
 // Tick 每渲染一帧画面CPU tick一次，通过计算两次渲染之间的时间间隔来控制CPU的指令周期
-func (p *Processor) Tick(time int64) {
+func (p *Processor) Tick(time int64, callback InstructionCallback) {
 	oldCycles := p.cycles
 	// 上一次tick与当前时间之间的cpu周期数
 	curTickCycles := (time - p.lastTickTime) * cpuFrequencyMilli
@@ -74,8 +74,7 @@ func (p *Processor) Tick(time int64) {
 		if !exists {
 			panic(fmt.Errorf("unknown opcode at 0x%4X:  0x%2X", oldPc, opCode))
 		}
-		fmt.Printf("%2X %s\n", opCode, ins.name)
-		ins.execute(p, nil)
+		ins.execute(p, callback)
 		if oldPc+1 == p.pc {
 			p.pc = oldPc + ins.length
 		}

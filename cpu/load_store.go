@@ -1,7 +1,7 @@
 package cpu
 
 // ld r8, n8
-func loadImmediate8(p *Processor, op *instruction) {
+func loadImmediate8(p *Processor, op *Instruction) {
 	data := p.readOperand8(p.pc, op.mode)
 	switch op.code {
 	case 0x06:
@@ -24,7 +24,7 @@ func loadImmediate8(p *Processor, op *instruction) {
 }
 
 // ld r16, n16
-func loadImmediate16(p *Processor, op *instruction) {
+func loadImmediate16(p *Processor, op *Instruction) {
 	data := p.readOperand16(p.pc, immediate)
 	switch op.code {
 	case 0x01: // ld BC, n16
@@ -39,7 +39,7 @@ func loadImmediate16(p *Processor, op *instruction) {
 }
 
 // ld A, r8
-func loadAFromReg(p *Processor, op *instruction) {
+func loadAFromReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x7F: // ld A, A
 	case 0x78:
@@ -58,7 +58,7 @@ func loadAFromReg(p *Processor, op *instruction) {
 }
 
 // ld B, r8
-func loadBFromReg(p *Processor, op *instruction) {
+func loadBFromReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x40: // ld B, B
 	case 0x41:
@@ -75,7 +75,7 @@ func loadBFromReg(p *Processor, op *instruction) {
 }
 
 // ld C, r8
-func loadCFromReg(p *Processor, op *instruction) {
+func loadCFromReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x48:
 		p.c = p.b
@@ -92,7 +92,7 @@ func loadCFromReg(p *Processor, op *instruction) {
 }
 
 // ld D, r8
-func loadDFromReg(p *Processor, op *instruction) {
+func loadDFromReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x50:
 		p.d = p.b
@@ -109,7 +109,7 @@ func loadDFromReg(p *Processor, op *instruction) {
 }
 
 // ld E, r8
-func loadEFromReg(p *Processor, op *instruction) {
+func loadEFromReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x58:
 		p.e = p.b
@@ -126,7 +126,7 @@ func loadEFromReg(p *Processor, op *instruction) {
 }
 
 // ld H, r8
-func loadHFromReg(p *Processor, op *instruction) {
+func loadHFromReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x60:
 		p.h = p.b
@@ -143,7 +143,7 @@ func loadHFromReg(p *Processor, op *instruction) {
 }
 
 // ld L, r8
-func loadLFromReg(p *Processor, op *instruction) {
+func loadLFromReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x68:
 		p.l = p.b
@@ -160,7 +160,7 @@ func loadLFromReg(p *Processor, op *instruction) {
 }
 
 // ld r8, (HL)
-func loadRegFromHL(p *Processor, op *instruction) {
+func loadRegFromHL(p *Processor, op *Instruction) {
 	data := p.readMem8(p.reg16(p.h, p.l))
 	switch op.code {
 	case 0x7E:
@@ -181,7 +181,7 @@ func loadRegFromHL(p *Processor, op *instruction) {
 }
 
 // ld (HL), r8
-func storeRegInHL(p *Processor, op *instruction) {
+func storeRegInHL(p *Processor, op *Instruction) {
 	addr := p.reg16(p.h, p.l)
 	switch op.code {
 	case 0x70:
@@ -200,7 +200,7 @@ func storeRegInHL(p *Processor, op *instruction) {
 }
 
 // ld A, (N)
-func loadA(p *Processor, op *instruction) {
+func loadA(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x0A: // ld A, (BC)
 		p.a = p.readMem8(p.reg16(p.b, p.c))
@@ -214,7 +214,7 @@ func loadA(p *Processor, op *instruction) {
 }
 
 // ld (N), A
-func storeA(p *Processor, op *instruction) {
+func storeA(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x02: // ld (BC), A
 		p.writeMem8(p.reg16(p.b, p.c), p.a)
@@ -229,7 +229,7 @@ func storeA(p *Processor, op *instruction) {
 }
 
 // ld r8, A
-func storeAInReg(p *Processor, op *instruction) {
+func storeAInReg(p *Processor, op *Instruction) {
 	switch op.code {
 	case 0x47:
 		p.b = p.a
@@ -247,14 +247,14 @@ func storeAInReg(p *Processor, op *instruction) {
 }
 
 // ld (HL), n8
-func storeImmediateInHL(p *Processor, op *instruction) {
+func storeImmediateInHL(p *Processor, op *Instruction) {
 	addr := p.reg16(p.h, p.l)
 	data := p.readOperand8(p.pc, op.mode)
 	p.writeMem8(addr, data)
 }
 
 // ld A, (0xFF00 + N); N = C or n8
-func readIOPort(p *Processor, op *instruction) {
+func readIOPort(p *Processor, op *Instruction) {
 	var addr uint16 = 0xFF00
 	switch op.code {
 	case 0xF0: // ld A, (0xFF00 + n8)
@@ -266,7 +266,7 @@ func readIOPort(p *Processor, op *instruction) {
 }
 
 // ld (0XFF00 + N), A; N = C or n8
-func writeIOPort(p *Processor, op *instruction) {
+func writeIOPort(p *Processor, op *Instruction) {
 	var addr uint16 = 0xFF00
 	switch op.code {
 	case 0xE0: // ld (0xFF00 + n8), A
@@ -279,7 +279,7 @@ func writeIOPort(p *Processor, op *instruction) {
 
 // A = (HL), HL += 1
 // (HL) = A, HL += 1
-func ldi(p *Processor, op *instruction) {
+func ldi(p *Processor, op *Instruction) {
 	addr := p.reg16(p.h, p.l)
 	switch op.code {
 	case 0x22: // ldi (HL), A
@@ -295,7 +295,7 @@ func ldi(p *Processor, op *instruction) {
 
 // A = (HL), HL -= 1
 // (HL) = A, HL -= 1
-func ldd(p *Processor, op *instruction) {
+func ldd(p *Processor, op *Instruction) {
 	addr := p.reg16(p.h, p.l)
 	switch op.code {
 	case 0x32: // ldd (HL), A
