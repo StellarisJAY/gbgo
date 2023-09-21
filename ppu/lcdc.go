@@ -1,6 +1,6 @@
 package ppu
 
-type LDCControl struct {
+type LCDControl struct {
 	data byte
 }
 
@@ -15,14 +15,14 @@ const (
 	ppuEnable                         // 是否开启ppu和LCD
 )
 
-func (c *LDCControl) get(attribute byte) bool {
+func (c *LCDControl) get(attribute byte) bool {
 	return c.data&attribute != 0
 }
 
-func (c *LDCControl) set(attribute byte) {
+func (c *LCDControl) set(attribute byte) {
 	c.data = c.data | attribute
 }
 
-func (c *LDCControl) reset(attribute byte) {
+func (c *LCDControl) reset(attribute byte) {
 	c.data = c.data & ^attribute
 }
