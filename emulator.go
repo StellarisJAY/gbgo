@@ -32,6 +32,7 @@ type Emulator struct {
 	ppu           *ppu.PPU
 	bus           *bus.Bus
 	lastFrameTime int64
+	frameCounter  int64
 
 	traceFunc cpu.InstructionCallback
 }
@@ -92,6 +93,8 @@ func MakeEmulator() *Emulator {
 	c := cartridge.MakeBasicCartridge(raw)
 	window, renderer, texture := initSDL(conf)
 	b := bus.MakeBus(&c)
+	gpu := ppu.MakePPU(b.RequestInterrupt)
+	b.ConnectPPU(gpu)
 	processor := cpu.MakeCPU(b)
 	var traceFunc cpu.InstructionCallback
 	if conf.trace {
@@ -104,8 +107,8 @@ func MakeEmulator() *Emulator {
 		renderer:  renderer,
 		texture:   texture,
 		bus:       b,
+		ppu:       gpu,
 		cpu:       processor,
-		ppu:       ppu.MakePPU(),
 		traceFunc: traceFunc,
 	}
 }
@@ -133,6 +136,11 @@ func (e *Emulator) Update() {
 	e.cpu.Tick(frameTime, e.traceFunc)
 	// 渲染画面
 	e.renderFrame()
+	e.frameCounter++
+	if e.frameCounter == e.conf.fps {
+		e.window.SetTitle(fmt.Sprintf("GBGo fps:%2d", 1000/(frameTime-e.lastFrameTime)))
+		e.frameCounter = 0
+	}
 	e.lastFrameTime = frameTime
 }
 
