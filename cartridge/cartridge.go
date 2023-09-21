@@ -87,6 +87,10 @@ func makeHeader(raw []byte) header {
 	}
 }
 
+func (bc *BasicCartridge) IsCGBMode() bool {
+	return bc.h.cgbOnly
+}
+
 func (bc *BasicCartridge) Info() {
 	fmt.Println("title: ", bc.h.title)
 	fmt.Println("manufacturer: ", bc.h.manufacturerCode)
