@@ -5,6 +5,12 @@ func loadSP(p *Processor, _ *Instruction) {
 	p.sp = p.reg16(p.h, p.l)
 }
 
+// ld (nn), SP
+func saveSP(p *Processor, op *Instruction) {
+	addr := p.readOperand16(p.pc, op.mode)
+	p.writeMem16(addr, p.sp)
+}
+
 func (p *Processor) stackPush16(data uint16) {
 	p.sp = p.sp - 2
 	p.writeMem16(p.sp, data)

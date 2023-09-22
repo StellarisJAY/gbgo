@@ -44,7 +44,7 @@ func (ins *Instruction) execute(p *Processor, callback InstructionCallback) {
 // getContext 获取当前cpu上下文
 func (p *Processor) getContext() ProcessorContext {
 	return ProcessorContext{
-		PC:     p.pc,
+		PC:     p.pc - 1,
 		SP:     p.sp,
 		AF:     p.reg16(p.a, p.f),
 		BC:     p.reg16(p.b, p.c),
@@ -166,6 +166,8 @@ var instructionSet = map[byte]*Instruction{
 	0x3A: {0x3A, "LDD", 1, 8, none, ldd},
 	// ld SP, HL
 	0xF9: {0xF9, "LD", 1, 8, none, loadSP},
+	// ld (nn), SP
+	0x08: {0x08, "LD", 3, 20, immediate, saveSP},
 	// stack push
 	0xC5: {0xC5, "PUSH", 1, 12, none, pushReg},
 	0xD5: {0xD5, "PUSH", 1, 12, none, pushReg},
