@@ -6,8 +6,8 @@ func (p *Processor) conditionalJump(target uint16, condition bool) {
 	}
 }
 
-func (p *Processor) conditionalJumpRelative(offset uint16, condition bool) {
-	target := int32(p.pc) + int32(int16(offset))
+func (p *Processor) conditionalJumpRelative(offset byte, condition bool) {
+	target := int32(p.pc) + int32(int8(offset))
 	if condition {
 		p.pc = uint16(target)
 	}
@@ -39,12 +39,12 @@ func jpc(p *Processor, op *Instruction) {
 }
 
 func jr(p *Processor, op *Instruction) {
-	offset := p.readOperand16(p.pc, op.mode)
+	offset := p.readOperand8(p.pc, op.mode)
 	p.conditionalJumpRelative(offset, true)
 }
 
 func jrc(p *Processor, op *Instruction) {
-	offset := p.readOperand16(p.pc, op.mode)
+	offset := p.readOperand8(p.pc, op.mode)
 	condition := false
 	switch op.code {
 	case 0x20:
