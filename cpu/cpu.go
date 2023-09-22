@@ -66,10 +66,6 @@ func (p *Processor) Tick(time int64, callback InstructionCallback) {
 		oldPc := p.pc
 		opCode := p.readOperand8(p.pc, immediate)
 		p.pc++
-		if opCode == 0x10 {
-			p.pc += 1
-			continue
-		}
 		ins, exists := instructionSet[opCode]
 		if !exists {
 			panic(fmt.Errorf("unknown opcode at 0x%4X:  0x%2X", oldPc, opCode))
