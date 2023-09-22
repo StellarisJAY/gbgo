@@ -31,6 +31,8 @@ func MakeBasicCartridge(raw []byte) BasicCartridge {
 	switch header.mbc {
 	case 0:
 		mbc = makeNoMBC(raw, header.ramSize)
+	case 1:
+		mbc = makeMBC1(raw, header.ramSize)
 	default:
 		panic(fmt.Errorf("unsupported mbc %d", mbc))
 	}
